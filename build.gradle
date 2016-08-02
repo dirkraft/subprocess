@@ -1,0 +1,216 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+ext {
+    // Project constants
+    github_org = 'dirkraft'
+    project_name = 'subprocess'
+    artifact_group = 'com.github.' + github_org + '.' + project_name
+    project_version = '0.0.1-SNAPSHOT'
+    project_description = 'A better subprocess API for Java.'
+    project_jdk = '1.8'
+
+    /*
+     * Dependencies can be named so that sub-projects can reference consistent version of them.
+     * dependencies {
+     *     compile deps['guava']
+     * }
+     */
+    deps = [
+            guava: 'com.google.guava:guava:18.0',
+    ]
+
+    /*
+     * Fine tune the POM contents here, particularly, the developers section. Some defaulting behavior is provided
+     * for all other fields based on project constants.
+     */
+    project_pom = {
+        name project_name
+        description project_description
+        url "https://github.com/${github_org}/${project_name}"
+        licenses {
+            license {
+                name 'MIT License'
+                url 'http://opensource.org/licenses/MIT'
+                distribution 'repo'
+            }
+        }
+        scm {
+            url "https://github.com/${github_org}/${project_name}.git"
+            connection "scm:git:https://github.com/${github_org}/${project_name}.git"
+            developerConnection "scm:git:git@github.com:${github_org}/${project_name}.git"
+        }
+        organization {
+            name github_org
+            url "https://github.com/${github_org}"
+        }
+        developers {
+            developer {
+                id 'developer'
+                name 'developer'
+            }
+        }
+    }
+
+    /** Function returns a new manifest that can be customized per module */
+    defaultManifest = {
+        return manifest {
+            def git_cmd = "git rev-parse HEAD"
+            def git_proc = git_cmd.execute()
+            attributes 'SCM-Revision': git_proc.text.trim()
+            attributes 'Timestamp': String.valueOf(System.currentTimeMillis())
+            attributes 'Build-Host': InetAddress.localHost.hostName
+        }
+    }
+
+    /** Used where gradle task evaluation would fail because of an undefined value, even if the task wasn't targeted. */
+    defaultBlank = { closure ->
+        try {
+            closure()
+        } catch (MissingPropertyException e) {
+            ''
+        }
+    }
+
+}
+
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+    }
+}
+
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'license'
+}
+
+subprojects {
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Identifiers
+
+    group = artifact_group
+    version = project_version
+    ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Plugins
+
+    apply plugin: 'groovy'
+    sourceCompatibility = project_jdk
+    targetCompatibility = project_jdk
+
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+    apply plugin: 'idea'
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // License
+
+    license {
+        header rootProject.file('src/license/HEADER')
+    }
+
+    assemble {
+        dependsOn licenseFormatMain, licenseFormatTest
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Dependencies
+
+    repositories {
+        mavenCentral()
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Artifacts
+
+    jar {
+        doFirst {
+            // Timestamp changes on every build. By evaluating it later, won't needlessly fail up-to-date checks.
+            manifest = defaultManifest()
+        }
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from 'build/docs/javadoc'
+        doFirst {
+            // Timestamp changes on every build. By evaluating it later, won't needlessly fail up-to-date checks.
+            manifest = defaultManifest()
+        }
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+        doFirst {
+            // Timestamp changes on every build. By evaluating it later, won't needlessly fail up-to-date checks.
+            manifest = defaultManifest()
+        }
+    }
+
+    artifacts {
+        archives jar
+        archives javadocJar
+        archives sourcesJar
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Publishing
+
+    assemble {
+        dependsOn licenseFormatMain, licenseFormatTest
+    }
+
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    uploadArchives {
+        dependsOn licenseFormatMain, licenseFormatTest
+        enabled = false // by default. Mark individual projects back to true for inclusion in publishing.
+
+        repositories.mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            //# ./gradlew -PdeployUrl=http://server/artifactory/repo -PdeployUser=admin -PdeployPass=pass uploadArchives
+            // for snapshots https://oss.sonatype.org/content/repositories/snapshots
+            // for staging/release https://oss.sonatype.org/service/local/staging/deploy/maven2
+            repository(
+                    url: defaultBlank({ deployUrl })
+            ) {
+                // If these are not defined assemble needlessly fails for unrelated tasks, hence, defaultBlank.
+                authentication(userName: defaultBlank({ deployUser }), password: defaultBlank({ deployPass }))
+            }
+
+            pom.project project_pom
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Misc
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+    distributionUrl = 'https://services.gradle.org/distributions/gradle-2.12-all.zip'
+}
+
+idea {
+    module {
+        downloadSources = true
+    }
+    project {
+        jdkName = project_jdk
+        languageLevel = project_jdk
+        vcs = 'Git'
+    }
+}
+
