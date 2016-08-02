@@ -22,8 +22,9 @@ public class TempFileSubprocessOutput implements SubprocessOutput {
 		return new TempFileSubprocessOutput(tempFile);
 	}
 
-	public File getTempFile() {
-		return tempFile;
+	@Override
+	public ProcessBuilder.Redirect asRedirect() {
+		return ProcessBuilder.Redirect.to(tempFile);
 	}
 
 	@Override

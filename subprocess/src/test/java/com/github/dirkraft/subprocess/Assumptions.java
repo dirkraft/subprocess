@@ -23,7 +23,7 @@ public class Assumptions {
 		File errfile = File.createTempFile("ShTest", ".err");
 		errfile.deleteOnExit();
 
-		Process p = new ProcessBuilder(TestConst.TRAP_SCRIPT)
+		Process p = new ProcessBuilder(TestConst.OUTPUT_ON_SIGTERM_SCRIPT)
 			.redirectOutput(outfile)
 			.redirectError(errfile)
 			.start();
@@ -41,7 +41,7 @@ public class Assumptions {
 
 	@Test
 	public void testAssumptionReaderThreadsLoseOutputOnShutdown() throws IOException, InterruptedException {
-		Process p = new ProcessBuilder(TestConst.TRAP_SCRIPT)
+		Process p = new ProcessBuilder(TestConst.OUTPUT_ON_SIGTERM_SCRIPT)
 			.start();
 
 		ExecutorService executorService = Executors.newCachedThreadPool();

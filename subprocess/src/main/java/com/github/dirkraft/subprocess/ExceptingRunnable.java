@@ -1,6 +1,6 @@
 package com.github.dirkraft.subprocess;
 
 @FunctionalInterface
-interface ExceptingRunnable {
+public interface ExceptingRunnable {
 	void run() throws Exception;
 }

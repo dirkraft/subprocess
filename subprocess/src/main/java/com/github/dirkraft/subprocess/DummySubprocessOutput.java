@@ -8,6 +8,11 @@ public class DummySubprocessOutput implements SubprocessOutput {
 	}
 
 	@Override
+	public ProcessBuilder.Redirect asRedirect() {
+		return null;
+	}
+
+	@Override
 	public String getUnread() {
 		return "";
 	}

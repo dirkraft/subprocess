@@ -7,29 +7,29 @@ import java.util.concurrent.TimeUnit;
 
 public class Subprocess implements AutoCloseable {
 
-	public static SubprocessResult eval(String commandName, String... commandArgs) {
-		return start(commandName, commandArgs).finish();
-	}
-
-	public static Subprocess start(String commandName, String... commandArgs) {
+	/**
+	 * Starts and finishes a subprocess configured to capture all output in the returned result.
+     */
+	public static SubprocessResult getOutput(String commandName, String... commandArgs) {
 		return new SubprocessBuilder()
 			.command(Arrays.concat(commandName, commandArgs))
 			.stdoutToTmpfile()
 			.stderrToTmpfile()
-			.start();
+			.start()
+			.finish();
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(Subprocess.class);
 
 	private final Process process;
 	private final SubprocessOutput stdout, stderr;
-	private final long patienceMs;
+	private final long finishPatienceMs;
 
-	public Subprocess(Process process, SubprocessOutput stdout, SubprocessOutput stderr, long patienceMs) {
+	public Subprocess(Process process, SubprocessOutput stdout, SubprocessOutput stderr, long finishPatienceMs) {
 		this.process = process;
 		this.stdout = stdout;
 		this.stderr = stderr;
-		this.patienceMs = patienceMs;
+		this.finishPatienceMs = finishPatienceMs;
 	}
 
 	public SubprocessResult finish() {
@@ -58,7 +58,7 @@ public class Subprocess implements AutoCloseable {
 	private boolean tryShutdown() {
 		try {
 			process.destroy();
-			return process.waitFor(patienceMs, TimeUnit.MILLISECONDS);
+			return process.waitFor(finishPatienceMs, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			throw new SubprocessException(e);
 		}
@@ -67,7 +67,7 @@ public class Subprocess implements AutoCloseable {
 	private void tryDestroyForcibly() {
 		try {
 			boolean exited = process.destroyForcibly()
-				.waitFor(patienceMs, TimeUnit.MILLISECONDS);
+				.waitFor(finishPatienceMs, TimeUnit.MILLISECONDS);
 			if (!exited) {
 				throw new SubprocessException("Failed to close out process in a timely manner. " +
 					"Caution: This may constitute a resource leak.");
