@@ -1,8 +1,10 @@
-package com.github.dirkraft.subprocess.test;
+package com.github.dirkraft.sh;
 
 class Holder<T> {
-
 	T value;
+
+	Holder() {
+	}
 
 	Holder(T value) {
 		this.value = value;
