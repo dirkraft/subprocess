@@ -1,87 +1,43 @@
 package com.github.dirkraft.subprocess;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Future;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
-public class Subprocess<C extends SubprocessController> implements AutoCloseable {
+public class Subprocess implements AutoCloseable {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Subprocess.class);
+	private static final String TMP_PFX = "subprocess";
+	private final Process process;
 
-	C controller;
-	Future<String> stdinFuture, stdoutFuture, stderrFuture;
+	public static Subprocess exec(String commandName, String... commandArgs) {
 
-	private SubprocessResult result;
+		String[] fullCommand = new String[commandArgs.length + 1];
+		fullCommand[0] = commandName;
+		System.arraycopy(commandArgs, 0, fullCommand, 1, commandArgs.length);
 
-	public static Subprocess exec(String... command) {
-		return PlatformDefaults.get()
-			.command(command)
-			.start();
+		File stdout = No.check(() -> File.createTempFile(TMP_PFX, ".out"));
+		File stderr = No.check(() -> File.createTempFile(TMP_PFX, ".err"));
+		Process process = No.check(() -> new ProcessBuilder()
+			.command(fullCommand)
+			.redirectOutput(stdout)
+			.redirectError(stderr)
+			.start());
+
+		return new Subprocess(process);
 	}
 
-	public Subprocess waitFor(long timeoutMs) {
-		throw new UnsupportedOperationException();
-	}
-
-	public Subprocess waitFor(long timeoutMs, SubprocessCondition<C> condition) {
-		throw new UnsupportedOperationException();
-	}
-
-	public boolean isAlive() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Subprocess shutdown(long timeoutMs) {
-		return shutdown(timeoutMs, condition -> true);
-	}
-
-	public Subprocess shutdown(long timeoutMs, SubprocessCondition<C> condition) {
-		if (result != null) {
-			throw new InvalidOperationException("This subprocess has already been shutdown.");
-		}
-
-		// TODO condition
-
-		int exitCode = controller.shutdown();
-		// TODO timeoutMs is the total. Subtract remaining time for each potential wait.
-		String stdout = No.check(() -> stdoutFuture.get(timeoutMs, TimeUnit.MILLISECONDS));
-		String stderr = No.check(() -> stderrFuture.get(timeoutMs, TimeUnit.MILLISECONDS));
-
-		this.result = new SubprocessResult(exitCode, stdout, stderr);
-
-		return this;
+	protected Subprocess(Process process) {
+		this.process = process;
 	}
 
 	@Override
-	public void close() throws SubprocessException {
-		if (result != null) {
-			shutdown();
+	public void close() throws Exception {
+		if (process.isAlive()) {
+			boolean exited = process.destroyForcibly()
+				.waitFor(5, TimeUnit.SECONDS);
+			if (!exited) {
+				throw new SubprocessException(
+					"Failed to close out process in a timely manner. Caution: This may constitute a resource leak.");
+			}
 		}
-
-		// TODO forceful cleanup
-		throw new UnsupportedOperationException();
-	}
-
-	public SubprocessResult getResult() {
-		if (result == null) {
-			throw new InvalidOperationException(
-				"Result is not available until this Subprocess has been shutdown.");
-		}
-		return result;
-	}
-
-	public SubprocessResult then(String... nextCommand) {
-		// TODO shutdown
-		// TODO close
-		throw new UnsupportedOperationException();
-	}
-
-	public SubprocessResult then(Function<SubprocessResult, String[]> nextCommand) {
-		// TODO shutdown
-		// TODO close
-		throw new UnsupportedOperationException();
 	}
 }

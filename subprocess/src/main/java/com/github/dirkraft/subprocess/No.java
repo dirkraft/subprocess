@@ -22,13 +22,4 @@ class No {
 		}
 	}
 
-	@FunctionalInterface
-	interface ExceptingRunnable {
-		void run() throws Exception;
-	}
-
-	@FunctionalInterface
-	interface ExceptingSupplier<T> {
-		T get() throws Exception;
-	}
 }

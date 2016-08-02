@@ -1,5 +1,7 @@
 package com.github.dirkraft.subprocess;
 
+import java.io.File;
+
 class SubprocessStarter<C extends SubprocessController> {
 
 	private final SubprocessBuilder<C> builder;
@@ -10,19 +12,23 @@ class SubprocessStarter<C extends SubprocessController> {
 		this.builder = builder;
 	}
 
-	Subprocess start() {
+	Subprocess2 start() {
 
 		Process process = startRawProcess();
 		controller = builder.controllerDecorator().apply(process);
 		waitForStartup();
 
-		return makeSubprocess(controller);
+		return makeSubprocess();
 	}
 
 	private Process startRawProcess() {
-		return No.check(() -> new ProcessBuilder()
-			.command(builder.command())
-			.start());
+		return No.check(() -> {
+			ProcessBuilder pb = new ProcessBuilder()
+				.command(builder.command())
+				.directory(new File(builder.workingDir()));
+			pb.environment().putAll(builder.environment());
+			return pb.start();
+		});
 	}
 
 	private void waitForStartup() {
@@ -41,8 +47,8 @@ class SubprocessStarter<C extends SubprocessController> {
 		throw new SubprocessExecutionException(message);
 	}
 
-	private Subprocess makeSubprocess(C controller) {
-		Subprocess subprocess = new Subprocess();
+	private Subprocess2 makeSubprocess() {
+		Subprocess2 subprocess = new Subprocess2();
 		subprocess.controller = controller;
 		subprocess.stdinFuture = new FailedFuture<>(new SubprocessException(new UnsupportedOperationException()));
 		subprocess.stdoutFuture = new FailedFuture<>(new SubprocessException(new UnsupportedOperationException()));

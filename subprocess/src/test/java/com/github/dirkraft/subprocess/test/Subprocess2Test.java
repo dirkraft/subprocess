@@ -1,17 +1,19 @@
 package com.github.dirkraft.subprocess.test;
 
-import com.github.dirkraft.subprocess.Subprocess;
+import com.github.dirkraft.subprocess.Subprocess2;
 import com.github.dirkraft.subprocess.SubprocessResult;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class SubprocessTest {
+public class Subprocess2Test {
 
 	@Test
 	public void testImmediatelyExitingCommand() {
-		SubprocessResult result = Subprocess.exec("ls", "-al", "gradle/").shutdown().getResult();
+		SubprocessResult result = Subprocess2.exec("ls", "-al", "gradle/")
+			.shutdown(1000)
+			.getResult();
 
 		assertEquals(0, result.getExitCode());
 	}

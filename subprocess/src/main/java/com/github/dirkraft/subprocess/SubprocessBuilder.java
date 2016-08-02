@@ -1,13 +1,17 @@
 package com.github.dirkraft.subprocess;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 // TODO C should probably be PLATFORM extends SubprocessPlatform
 public class SubprocessBuilder<C extends SubprocessController> {
 
-
-
 	private String[] command = {};
+	private String workingDir = "";
+	private Map<String, String> environment = new HashMap<>(System.getenv());
+
 	private Function<Process, C> controllerDecorator;
 	private long startTimeoutMs = 0;
 	private SubprocessCondition<C> startCondition = controller -> true;
@@ -18,6 +22,29 @@ public class SubprocessBuilder<C extends SubprocessController> {
 
 	public SubprocessBuilder<C> command(String[] command) {
 		this.command = command;
+		return this;
+	}
+
+	public String workingDir() {
+		return this.workingDir;
+	}
+
+	public SubprocessBuilder<C> workingDir(String workingDir) {
+		this.workingDir = workingDir;
+		return this;
+	}
+
+	public Map<String, String> environment() {
+		return this.environment;
+	}
+
+	public SubprocessBuilder<C> environment(Map<String, String> environment) {
+		this.environment = environment;
+		return this;
+	}
+
+	public SubprocessBuilder<C> environment(String key, Object val) {
+		this.environment.put(key, Objects.toString(val));
 		return this;
 	}
 
@@ -38,13 +65,13 @@ public class SubprocessBuilder<C extends SubprocessController> {
 		return this.startCondition;
 	}
 
-	public SubprocessBuilder startCondition(long timeoutMs, SubprocessCondition<C> condition) {
+	public SubprocessBuilder<C> startCondition(long timeoutMs, SubprocessCondition<C> condition) {
 		this.startTimeoutMs = timeoutMs;
 		this.startCondition = condition;
 		return this;
 	}
 
-	public Subprocess start() {
+	public Subprocess2 start() {
 		validateState();
 		SubprocessStarter<C> starter = new SubprocessStarter<>(this);
 		return starter.start();
