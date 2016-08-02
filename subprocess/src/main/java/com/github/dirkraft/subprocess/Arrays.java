@@ -1,6 +1,6 @@
-package com.github.dirkraft.sh;
+package com.github.dirkraft.subprocess;
 
-class ShArrays {
+class Arrays {
 	static String[] concat(String first, String[] array) {
 		String[] together = new String[array.length + 1];
 		together[0] = first;

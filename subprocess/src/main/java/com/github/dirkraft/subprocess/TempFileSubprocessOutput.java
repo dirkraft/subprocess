@@ -1,4 +1,4 @@
-package com.github.dirkraft.sh;
+package com.github.dirkraft.subprocess;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,24 +6,23 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Files;
 
-class TempFileShOutStream implements ShOutStream {
+public class TempFileSubprocessOutput implements SubprocessOutput {
 
 	private static final String TMP_PFX = "com.github.dirkraft.sh-";
 
-	private static final Logger LOG = LoggerFactory.getLogger(TempFileShOutStream.class);
-
-	static TempFileShOutStream create(String suffix) {
-		File tempFile = No.check(() -> File.createTempFile(TMP_PFX, suffix));
-		return new TempFileShOutStream(tempFile);
-	}
-
+	private static final Logger LOG = LoggerFactory.getLogger(TempFileSubprocessOutput.class);
 	private final File tempFile;
 
-	private TempFileShOutStream(File tempFile) {
+	private TempFileSubprocessOutput(File tempFile) {
 		this.tempFile = tempFile;
 	}
 
-	File getTempFile() {
+	public static TempFileSubprocessOutput create(String suffix) {
+		File tempFile = No.check(() -> File.createTempFile(TMP_PFX, suffix));
+		return new TempFileSubprocessOutput(tempFile);
+	}
+
+	public File getTempFile() {
 		return tempFile;
 	}
 
@@ -35,7 +34,7 @@ class TempFileShOutStream implements ShOutStream {
 	}
 
 	@Override
-	public void close() throws ShException {
+	public void close() throws SubprocessException {
 		if (!tempFile.delete()) {
 			LOG.warn("Failed to delete file: {}", tempFile);
 		}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function print_alot() {
-	for i in `seq 1 10000` ; do
+	for i in `seq 1 100` ; do
 		echo "Line number $i"
 	done
 	echo $1

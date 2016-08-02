@@ -1,4 +1,4 @@
-package com.github.dirkraft.sh;
+package com.github.dirkraft.subprocess;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

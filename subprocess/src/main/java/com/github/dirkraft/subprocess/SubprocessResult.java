@@ -1,11 +1,11 @@
-package com.github.dirkraft.sh;
+package com.github.dirkraft.subprocess;
 
-public class ShResult {
+public class SubprocessResult {
 
 	private String stdout;
 	private String stderr;
 
-	ShResult(String stdout, String stderr) {
+	SubprocessResult(String stdout, String stderr) {
 		this.stdout = stdout;
 		this.stderr = stderr;
 	}

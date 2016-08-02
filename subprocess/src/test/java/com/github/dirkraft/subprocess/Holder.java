@@ -1,4 +1,4 @@
-package com.github.dirkraft.sh;
+package com.github.dirkraft.subprocess;
 
 class Holder<T> {
 	T value;
