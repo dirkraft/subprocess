@@ -11,7 +11,7 @@ public class SubprocessBuilder {
 
 	private SubprocessOutput stdout = DummySubprocessOutput.INSTANCE;
 	private SubprocessOutput stderr = DummySubprocessOutput.INSTANCE;
-	private ExceptingRunnable startCheck = () -> Thread.sleep(100);
+	private ExceptingRunnable startCheck = () -> {};
 	private long finishPatienceMs = 1000;
 
 	/**

@@ -69,4 +69,10 @@ public class SubprocessTest {
 		assertEquals("The patience was high enough. Output captured.",
 			"Yawwwn", result.getStderr().trim());
 	}
+
+	@Test
+	public void testSlow() {
+		SubprocessResult result = Subprocess.getOutput("bash", "-c", "sleep 0.5 ; echo Done");
+		assertEquals("Done", result.getStdout().trim());
+	}
 }

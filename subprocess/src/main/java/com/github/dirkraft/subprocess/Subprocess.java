@@ -33,6 +33,15 @@ public class Subprocess implements AutoCloseable {
 	}
 
 	public SubprocessResult finish() {
+		return finish(finishPatienceMs);
+	}
+
+	public SubprocessResult finish(long timeoutMs) {
+		No.check(() -> process.waitFor(timeoutMs, TimeUnit.MILLISECONDS));
+		return finishImmediately();
+	}
+
+	public SubprocessResult finishImmediately() {
 		return shutdown();
 	}
 
@@ -78,7 +87,7 @@ public class Subprocess implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws SubprocessException {
 		finish();
 	}
 
