@@ -50,7 +50,7 @@ SIGTERM and will wait. Because this is for local testing, using a
 special shutdown signaler I can tell postgres to go ahead and shutdown 
 regardless of open connections via SIGINT.
 
-	builder.shutdownSignaler(PosixAwareShutdownSignaler("kill", "-SIGINT"))
+	builder.shutdownSignaler(new PosixAwareShutdownSignaler("kill", "-SIGINT"))
 
 So now I can start and stop a freshly-created postgres as part of a 
 test run.
