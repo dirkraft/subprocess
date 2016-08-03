@@ -43,7 +43,7 @@ it prints output on SIGTERM and Process likes to close InputStreams
 immediately, rather than waiting for the process to exit (I think).
 
 So once I was able to actually capture and analyze the output coming
-out on SIGTERM (the signal sent by `Process.destroy()`),
+out on SIGTERM (the signal sent by `Process.destroy()` on OSX),
 I saw the db was hanging which I eventually deduced
 to open connections. Postgres won't close any open connections on
 SIGTERM and will wait. Because this is for local testing, using a
