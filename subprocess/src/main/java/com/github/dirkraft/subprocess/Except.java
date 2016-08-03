@@ -25,9 +25,12 @@ class Except {
 	static <T> T log(ExceptingSupplier<T> supplier) {
 		try {
 			return supplier.get();
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			throw e;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
+			throw new SubprocessException(e);
 		}
 	}
 
