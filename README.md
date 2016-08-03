@@ -42,5 +42,16 @@ another project and was having trouble shutting down postgres because
 it prints output on SIGTERM and Process likes to close InputStreams
 immediately, rather than waiting for the process to exit (I think).
 
-So now I can start and stop a postgres as part of a test run.
+So once I was able to actually capture and analyze the output coming
+out on SIGTERM (the signal sent by `Process.destroy()`),
+I saw the db was hanging which I eventually deduced
+to open connections. Postgres won't close any open connections on
+SIGTERM and will wait. Because this is for local testing, using a
+special shutdown signaler I can tell postgres to go ahead and shutdown 
+regardless of open connections via SIGINT.
+
+	builder.shutdownSignaler(PosixAwareShutdownSignaler("kill", "-SIGINT"))
+
+So now I can start and stop a freshly-created postgres as part of a 
+test run.
 
