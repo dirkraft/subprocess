@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertFalse;
@@ -47,14 +46,14 @@ public class Assumptions {
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
-		final AtomicReference<String> stdoutHolder = new AtomicReference<>();
+		final Holder<String> stdoutHolder = new Holder<>("");
 		executorService.submit(() -> {
-			stdoutHolder.set(Except.log(() -> IOUtils.toString(p.getInputStream(), UTF_8)));
+			stdoutHolder.value = Except.log(() -> IOUtils.toString(p.getInputStream(), UTF_8));
 		});
 
-		final AtomicReference<String> stderrHolder = new AtomicReference<>();
+		final Holder<String> stderrHolder = new Holder<>("");
 		executorService.submit(() -> {
-			stderrHolder.set(Except.log(() -> IOUtils.toString(p.getErrorStream(), UTF_8)));
+			stderrHolder.value = Except.log(() -> IOUtils.toString(p.getErrorStream(), UTF_8));
 		});
 
 		assertFalse("This process should be persistent.", p.waitFor(1, TimeUnit.SECONDS));
@@ -65,9 +64,9 @@ public class Assumptions {
 		assertTrue("Stream threads executor stopped", executorService.awaitTermination(1, TimeUnit.SECONDS));
 
 		assertTrue("This output happened before p.destroy(), so it comes through fine.",
-			stdoutHolder.get().contains("Hello"));
+			stdoutHolder.value.contains("Hello"));
 		assertFalse("This output happens after p.destroy(), so the streams are closed before it is read.",
-			stderrHolder.get().contains("SIGTERM"));
+			stderrHolder.value.contains("SIGTERM"));
 	}
 
 }
