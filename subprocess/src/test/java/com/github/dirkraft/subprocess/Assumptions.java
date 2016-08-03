@@ -48,12 +48,12 @@ public class Assumptions {
 
 		final Holder<String> stdoutHolder = new Holder<>();
 		executorService.submit(() -> {
-			stdoutHolder.value = No.except(() -> IOUtils.toString(p.getInputStream(), UTF_8));
+			stdoutHolder.value = Except.log(() -> IOUtils.toString(p.getInputStream(), UTF_8));
 		});
 
 		final Holder<String> stderrHolder = new Holder<>();
 		executorService.submit(() -> {
-			stderrHolder.value = No.except(() -> IOUtils.toString(p.getErrorStream(), UTF_8));
+			stderrHolder.value = Except.log(() -> IOUtils.toString(p.getErrorStream(), UTF_8));
 		});
 
 		assertFalse("This process should be persistent.", p.waitFor(1, TimeUnit.SECONDS));

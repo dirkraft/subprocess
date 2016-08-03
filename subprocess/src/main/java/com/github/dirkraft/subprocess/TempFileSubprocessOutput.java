@@ -18,7 +18,7 @@ public class TempFileSubprocessOutput implements SubprocessOutput {
 	}
 
 	public static TempFileSubprocessOutput create(String suffix) {
-		File tempFile = No.check(() -> File.createTempFile(TMP_PFX, suffix));
+		File tempFile = Except.unchecked(() -> File.createTempFile(TMP_PFX, suffix));
 		return new TempFileSubprocessOutput(tempFile);
 	}
 
@@ -29,7 +29,7 @@ public class TempFileSubprocessOutput implements SubprocessOutput {
 
 	@Override
 	public String getUnread() {
-		byte[] bytes = No.check(() -> Files.readAllBytes(tempFile.toPath()));
+		byte[] bytes = Except.unchecked(() -> Files.readAllBytes(tempFile.toPath()));
 		LOG.trace("Read {} bytes into {}", bytes.length, tempFile);
 		return new String(bytes);
 	}

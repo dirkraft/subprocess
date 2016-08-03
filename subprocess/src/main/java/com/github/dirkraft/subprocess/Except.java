@@ -1,8 +1,8 @@
 package com.github.dirkraft.subprocess;
 
-class No {
+class Except {
 
-	static void check(ExceptingRunnable runnable) {
+	static void unchecked(ExceptingRunnable runnable) {
 		try {
 			runnable.run();
 		} catch (SubprocessException e) {
@@ -12,7 +12,7 @@ class No {
 		}
 	}
 
-	static <T> T check(ExceptingSupplier<T> supplier) {
+	static <T> T unchecked(ExceptingSupplier<T> supplier) {
 		try {
 			return supplier.get();
 		} catch (SubprocessException e) {
@@ -22,12 +22,20 @@ class No {
 		}
 	}
 
-	static <T> T except(ExceptingSupplier<T> supplier) {
+	static <T> T log(ExceptingSupplier<T> supplier) {
 		try {
 			return supplier.get();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	static <T> T suppress(ExceptingSupplier<T> supplier, T defaultValue) {
+		try {
+			return supplier.get();
+		} catch (Exception e) {
+			return defaultValue;
 		}
 	}
 

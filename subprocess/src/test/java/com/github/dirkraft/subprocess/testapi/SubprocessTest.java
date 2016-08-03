@@ -1,8 +1,9 @@
 package com.github.dirkraft.subprocess.testapi;
 
-import com.github.dirkraft.subprocess.Subprocess;
 import com.github.dirkraft.subprocess.SubprocessBuilder;
+import com.github.dirkraft.subprocess.SubprocessExit;
 import com.github.dirkraft.subprocess.SubprocessResult;
+import com.github.dirkraft.subprocess.Subprocesses;
 import com.github.dirkraft.subprocess.TestConst;
 import org.junit.Test;
 
@@ -13,9 +14,10 @@ public class SubprocessTest {
 
 	@Test
 	public void testGetOutput() {
-		SubprocessResult result = Subprocess.getOutput(TestConst.OUTPUT_ON_SIGTERM_SCRIPT);
+		SubprocessResult result = Subprocesses.getOutput(TestConst.OUTPUT_ON_SIGTERM_SCRIPT);
 		assertTrue(result.getStdout().contains("Hello"));
 		assertTrue(result.getStderr().contains("SIGTERM"));
+		assertEquals(SubprocessExit.GRACEFUL, result.getExit());
 	}
 
 	@Test
@@ -27,6 +29,7 @@ public class SubprocessTest {
 		SubprocessResult result = sh.start().finish();
 		assertTrue(result.getStdout().contains("Hello"));
 		assertTrue(result.getStderr().contains("SIGTERM"));
+		assertEquals(SubprocessExit.GRACEFUL, result.getExit());
 	}
 
 	@Test
@@ -36,6 +39,7 @@ public class SubprocessTest {
 		SubprocessResult result = sh.start().finish();
 		assertEquals("", result.getStdout());
 		assertEquals("", result.getStderr());
+		assertEquals(SubprocessExit.GRACEFUL, result.getExit());
 	}
 
 	@Test
@@ -52,6 +56,8 @@ public class SubprocessTest {
 		assertEquals("Oh hi. Didn't see you there.", result.getStdout().trim());
 		assertEquals("The patience was too low. No output captured.",
 			"", result.getStderr().trim());
+		assertEquals("It was forcibly killed because we ran out of patience.",
+			SubprocessExit.FORCED, result.getExit());
 	}
 
 	@Test
@@ -68,11 +74,28 @@ public class SubprocessTest {
 		assertEquals("Oh hi. Didn't see you there.", result.getStdout().trim());
 		assertEquals("The patience was high enough. Output captured.",
 			"Yawwwn", result.getStderr().trim());
+		assertEquals(SubprocessExit.GRACEFUL, result.getExit());
 	}
 
 	@Test
 	public void testSlow() {
-		SubprocessResult result = Subprocess.getOutput("bash", "-c", "sleep 0.5 ; echo Done");
+		SubprocessResult result = Subprocesses.getOutput("bash", "-c", "sleep 0.5 ; echo Done");
 		assertEquals("Done", result.getStdout().trim());
+		assertEquals(SubprocessExit.NORMAL, result.getExit());
 	}
+
+	@Test
+	public void testSigtermIgnored() {
+		SubprocessResult result = Subprocesses.getOutput("src/test/scripts/special_signal.sh");
+		assertEquals(SubprocessExit.FORCED, result.getExit());
+	}
+
+	@Test
+	public void testCustomShutdownSignal() {
+		SubprocessResult result = Subprocesses.forOutput("src/test/scripts/special_signal.sh")
+			.start()
+			.finish();
+		assertEquals(SubprocessExit.FORCED, result.getExit());
+	}
+
 }

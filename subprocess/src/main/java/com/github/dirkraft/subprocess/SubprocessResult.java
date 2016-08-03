@@ -4,10 +4,12 @@ public class SubprocessResult {
 
 	private String stdout;
 	private String stderr;
+	private SubprocessExit exit;
 
-	SubprocessResult(String stdout, String stderr) {
+	SubprocessResult(String stdout, String stderr, SubprocessExit exit) {
 		this.stdout = stdout;
 		this.stderr = stderr;
+		this.exit = exit;
 	}
 
 	public String getStdout() {
@@ -16,6 +18,10 @@ public class SubprocessResult {
 
 	public String getStderr() {
 		return stderr;
+	}
+
+	public SubprocessExit getExit() {
+		return exit;
 	}
 
 	public void printToSystem() {
