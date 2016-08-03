@@ -9,7 +9,11 @@ public class Subprocess implements AutoCloseable {
 	private final ProcessDestroyer processDestroyer;
 	private final long finishPatienceMs;
 
-	public Subprocess(Process process, SubprocessOutput stdout, SubprocessOutput stderr, ProcessDestroyer processDestroyer, long finishPatienceMs) {
+	public Subprocess(Process process,
+					  SubprocessOutput stdout,
+					  SubprocessOutput stderr,
+					  ProcessDestroyer processDestroyer,
+					  long finishPatienceMs) {
 		this.process = process;
 		this.stdout = stdout;
 		this.stderr = stderr;
@@ -32,10 +36,6 @@ public class Subprocess implements AutoCloseable {
 	}
 
 	public SubprocessResult finishImmediately() {
-		return shutdown();
-	}
-
-	private SubprocessResult shutdown() {
 		SubprocessExit exit = processDestroyer.stopProcess();
 		SubprocessResult result = new SubprocessResult(stdout.getUnread(), stderr.getUnread(), exit);
 		stdout.close();

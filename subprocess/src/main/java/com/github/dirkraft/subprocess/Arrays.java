@@ -12,7 +12,7 @@ class Arrays {
 	static String[] concat(String[] array, String... more) {
 		String[] together = new String[array.length + more.length];
 		System.arraycopy(array, 0, together, 0, array.length);
-		System.arraycopy(more, array.length, together, 0, more.length);
+		System.arraycopy(more, 0, together, array.length, more.length);
 		return together;
 	}
 }

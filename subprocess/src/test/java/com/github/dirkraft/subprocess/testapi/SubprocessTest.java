@@ -1,5 +1,6 @@
 package com.github.dirkraft.subprocess.testapi;
 
+import com.github.dirkraft.subprocess.PosixAwareShutdownSignaler;
 import com.github.dirkraft.subprocess.SubprocessBuilder;
 import com.github.dirkraft.subprocess.SubprocessExit;
 import com.github.dirkraft.subprocess.SubprocessResult;
@@ -86,16 +87,20 @@ public class SubprocessTest {
 
 	@Test
 	public void testSigtermIgnored() {
-		SubprocessResult result = Subprocesses.getOutput("src/test/scripts/special_signal.sh");
+		SubprocessResult result = Subprocesses.getOutput(TestConst.SIGHUP_SCRIPT);
 		assertEquals(SubprocessExit.FORCED, result.getExit());
 	}
 
 	@Test
 	public void testCustomShutdownSignal() {
-		SubprocessResult result = Subprocesses.forOutput("src/test/scripts/special_signal.sh")
+		SubprocessResult result = Subprocesses.forOutput(TestConst.SIGHUP_SCRIPT)
+			.shutdownSignaler(new PosixAwareShutdownSignaler("kill", "-SIGHUP"))
 			.start()
 			.finish();
-		assertEquals(SubprocessExit.FORCED, result.getExit());
+		System.out.println("erp");
+		result.printToSystem();
+		System.out.println("derp");
+		assertEquals(SubprocessExit.GRACEFUL, result.getExit());
 	}
 
 }
