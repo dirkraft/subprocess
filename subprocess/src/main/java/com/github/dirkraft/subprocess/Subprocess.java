@@ -21,6 +21,10 @@ public class Subprocess implements AutoCloseable {
 		this.finishPatienceMs = finishPatienceMs;
 	}
 
+	public Process getProcess() {
+		return process;
+	}
+
 	@Override
 	public void close() throws SubprocessException {
 		finish();
