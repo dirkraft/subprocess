@@ -41,7 +41,9 @@ public class Subprocess implements AutoCloseable {
 
 	public SubprocessResult finishImmediately() {
 		SubprocessExit exit = processDestroyer.stopProcess();
-		SubprocessResult result = new SubprocessResult(stdout.getUnread(), stderr.getUnread(), exit);
+		SubprocessResult result = new SubprocessResult(
+			this, stdout.getUnread(), stderr.getUnread(), exit
+		);
 		stdout.close();
 		stderr.close();
 		return result;
